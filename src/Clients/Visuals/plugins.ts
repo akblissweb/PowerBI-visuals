@@ -314,4 +314,10 @@ module powerbi.visuals.plugins {
         capabilities: samples.StreamGraph.capabilities,
         create: () => new samples.StreamGraph()
     };
+
+    export var spermChartVisual: IVisualPlugin = {
+        name: 'spermChartVisual',
+        capabilities: SpermChartVisual.capabilities,
+        create: () => new SpermChartVisual()
+    };
 }

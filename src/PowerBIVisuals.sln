@@ -1,4 +1,5 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -6,21 +7,21 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "PowerBI-visuals", "..\", "{
 	ProjectSection(WebsiteProperties) = preProject
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
 		Debug.AspNetCompiler.VirtualPath = "/localhost_52242"
-		Debug.AspNetCompiler.PhysicalPath = "..\..\PowerBI-visuals\"
+		Debug.AspNetCompiler.PhysicalPath = "..\..\pb\"
 		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_52242\"
 		Debug.AspNetCompiler.Updateable = "true"
 		Debug.AspNetCompiler.ForceOverwrite = "true"
 		Debug.AspNetCompiler.FixedNames = "false"
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.VirtualPath = "/localhost_52242"
-		Release.AspNetCompiler.PhysicalPath = "..\..\PowerBI-visuals\"
+		Release.AspNetCompiler.PhysicalPath = "..\..\pb\"
 		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_52242\"
 		Release.AspNetCompiler.Updateable = "true"
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
 		VWDPort = "52242"
-		SlnRelativePath = "..\..\PowerBI-visuals\"
+		SlnRelativePath = "..\..\pb\"
 	EndProjectSection
 EndProject
 Global

@@ -35,7 +35,7 @@ module powerbi.visuals.sampleDataViews {
         public name: string = "SimpleMatrixData";
         public displayName: string = "Simple matrix data";
 
-        public visuals: string[] = ['matrix',
+        public visuals: string[] = ['matrix','spermChartVisual'
         ];
 
         public getDataViews(): DataView[] {
