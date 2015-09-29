@@ -315,9 +315,9 @@ module powerbi.visuals.plugins {
         create: () => new samples.StreamGraph()
     };
 
-    export var spermChartVisual: IVisualPlugin = {
-        name: 'spermChartVisual',
-        capabilities: SpermChartVisual.capabilities,
-        create: () => new SpermChartVisual()
+    export var tadpoleSparkGrid: IVisualPlugin = {
+        name: 'tadpoleSparkGrid',
+        capabilities: TadpoleSparkGrid.capabilities,
+        create: () => new TadpoleSparkGrid()
     };
 }

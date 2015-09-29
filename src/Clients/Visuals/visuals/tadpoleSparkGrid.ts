@@ -1,15 +1,7 @@
 ﻿/*
- *  Angry Koala Sperm Chart Visualization - Visual Plugin for Microsoft Power BI Visualizations
- *  Author: Shaun Bliss (blissweb@hotmail.com)   Creation Date: September 2015
- *  Copyright (c) Angry Koala Pty Ltd.
- *
- *  based on the IVisual interface from ... 
- *
  *  Power BI Visualizations
  *
  *  Copyright (c) Microsoft Corporation
- *  All rights reserved. 
- *  MIT License
  *  All rights reserved. 
  *  MIT License
  *
@@ -30,6 +22,21 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
+ *
+ *  Angry Koala Tadpole Spark Grid Visualization 
+ *  Visual Plugin for Microsoft Power BI Visualizations
+ *  Author: Shaun Bliss, Angry Koala Pty Ltd. (blissweb@hotmail.com)   
+ *  Creation Date: September 2015
+ * 
+ *  Shows a grid containing spark line charts based on a set of sequential periods data.
+ *  It shows a red line in the line segment if the preceding point is
+ *  higher than the following point. e.g. sales have declined.
+ *  The last period has a thicker stroke as it would often by the 
+ *  most important period to consider.
+ *  There is a lessIsGood option for when you want to reverse the colors
+ *  because sometimes less is good (eg. mistakes) but normally more is good (eg. profit)
+ *
  */
 
 /* Please make sure that this path is correct */
@@ -37,13 +44,13 @@
 
 module powerbi.visuals {
 
-    export interface SpermChartViewModel {
+    export interface TadpoleSparkGridViewModel {
         periodData: any[];
         rowHeaders: any[];
         colHeaders: any[];
     };
 
-    interface SpermChartVisualStyle {
+    interface TadpoleSparkGridVisualStyle {
         chart: {
             width: number;
             height: number;
@@ -61,9 +68,9 @@ module powerbi.visuals {
         };
     }
 
-    export class SpermChartVisual implements IVisual {
+    export class TadpoleSparkGrid implements IVisual {
 
-        private static DefaultStyleProperties: SpermChartVisualStyle = {
+        private static DefaultStyleProperties: TadpoleSparkGridVisualStyle = {
             chart: {
                 width: 70,
                 height: 18,
@@ -86,94 +93,65 @@ module powerbi.visuals {
 		  * Fields, Formatting options, data reduction & QnA hints
 		  */
         public static capabilities: VisualCapabilities = {
-
-            // STANDARD
             dataRoles: [
                 {
-                    name: "Category",
+                    name: matrixRoleNames.rows,
                     kind: VisualDataRoleKind.Grouping
                 },
                 {
-                    name: "Y",
+                    name: matrixRoleNames.values,
                     kind: VisualDataRoleKind.Measure
                 }
             ],
+            objects: {
+                general: {
+                    displayName: data.createDisplayNameGetter('Visual_General'),
+                    properties: {
+                        formatString: {
+                            type: { formatting: { formatString: true } },
+                        },
+                        lessIsGood: {
+                            type: { bool: true },
+                            displayName: 'Less is Good'
+                        }
+                    },
+                }
+            },
             dataViewMappings: [{
-                categorical: {
-                    categories: {
-                        for: { in: "Category" }
+                conditions: [
+                    { 'Rows': { min: 1 }, 'Columns': { max: 0 }, 'Values': { max: 0 } },
+                    { 'Rows': { min: 0 }, 'Columns': { max: 0 }, 'Values': { max: 1 } },
+                    { 'Rows': { min: 1 }, 'Columns': { max: 0 }, 'Values': { min: 1 } }
+                ],
+                matrix: {
+                    rows: {
+                        for: { in: 'Rows' },
+                        /* Explicitly override the server data reduction to make it appropriate for matrix. */
+                        dataReductionAlgorithm: { window: { count: 100 } }
+                    },
+                    columns: {
+                        for: { in: 'Columns' },
+                        /* Explicitly override the server data reduction to make it appropriate for matrix. */
+                        dataReductionAlgorithm: { top: { count: 100 } }
+                    },
+                    values: {
+                        for: { in: 'Values' }
                     }
                 }
-            }]
-
-            // MATRIX
-
-            //    dataRoles: [
-            //        {
-            //            name: matrixRoleNames.rows,
-            //            kind: VisualDataRoleKind.Grouping
-            //        }, {
-            //            name: matrixRoleNames.columns,
-            //            kind: VisualDataRoleKind.Grouping
-            //        }, {
-            //            name: matrixRoleNames.values,
-            //            kind: VisualDataRoleKind.Measure
-            //        }
-            //    ],
-            //    objects: {
-            //        general: {
-            //            displayName: data.createDisplayNameGetter('Visual_General'),
-            //            properties: {
-            //                formatString: {
-            //                    type: { formatting: { formatString: true } },
-            //                },
-            //                rowSubtotals: {
-            //                    type: { bool: true },
-            //                    displayName: data.createDisplayNameGetter('Visual_RowTotals')
-            //                },
-            //                columnSubtotals: {
-            //                    type: { bool: true },
-            //                    displayName: data.createDisplayNameGetter('Visual_ColumnTotals')
-            //                }
-            //            },
-            //        }
-            //    },
-            //    dataViewMappings: [{
-            //        conditions: [
-            //            { 'Rows': { max: 0 }, 'Columns': { max: 0 }, 'Values': { min: 1 } },
-            //            { 'Rows': { min: 1 }, 'Columns': { min: 0 }, 'Values': { min: 0 } },
-            //            { 'Rows': { min: 0 }, 'Columns': { min: 1 }, 'Values': { min: 0 } }
-            //        ],
-            //        matrix: {
-            //            rows: {
-            //                for: { in: 'Rows' },
-            //                /* Explicitly override the server data reduction to make it appropriate for matrix. */
-            //                dataReductionAlgorithm: { window: { count: 100 } }
-            //            },
-            //            columns: {
-            //                for: { in: 'Columns' },
-            //                /* Explicitly override the server data reduction to make it appropriate for matrix. */
-            //                dataReductionAlgorithm: { top: { count: 100 } }
-            //            },
-            //            values: {
-            //                for: { in: 'Values' }
-            //            }
-            //        }
-            //    }],
-            //    filterMappings: {
-            //        measureFilter: {
-            //            targetRoles: [matrixRoleNames.rows]
-            //        }
-            //    },
-            //    sorting: {
-            //        custom: {},
-            //    },
-            //    suppressDefaultTitle: true,
-
+            }],
+            filterMappings: {
+                measureFilter: {
+                    targetRoles: [matrixRoleNames.rows]
+                }
+            },
+            sorting: {
+                custom: {},
+            },
+            suppressDefaultTitle: true,
         };
 
-        private viewModel: SpermChartViewModel;
-        private settings: SpermChartVisualStyle;
+        private viewModel: TadpoleSparkGridViewModel;
+        private settings: TadpoleSparkGridVisualStyle;
 
         private svg: D3.Selection;
         private scrollingDiv: D3.Selection;
@@ -183,44 +161,79 @@ module powerbi.visuals {
         private options: VisualUpdateOptions;
         private style: IVisualStyle;
         private colors: IDataColorPalette;
+        private lessIsGood: boolean;
+
+        public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] {
+            var instances: VisualObjectInstance[] = [];
+            if (options.objectName === 'general') {
+                //var objects = this.getMatrixDataViewObjects();
+                instances.push({
+                    selector: null,
+                    properties: {
+                        lessIsGood: this.shouldSetLessIsGood(),
+                    },
+                    objectName: options.objectName
+                });
+            }
+            return instances;
+        }
+
+        private shouldSetLessIsGood(): boolean {
+            if (this.lessIsGood != null) {
+                this.lessIsGood = !this.lessIsGood;
+            } else {
+                this.lessIsGood = false;
+            }
+            return this.lessIsGood;
+        }
 
         // Convert a DataView into a view model
-        public static converter(dataView: DataView): SpermChartViewModel {
-            var viewModel: SpermChartViewModel = SpermChartVisual.processMatrixModel(dataView);
+        public static converter(dataView: DataView): TadpoleSparkGridViewModel {
+            var viewModel: TadpoleSparkGridViewModel = TadpoleSparkGrid.processMatrixModel(dataView);
             return viewModel;
         }
 
-        public static processMatrixModel(dataView: DataView): SpermChartViewModel {
+        public static processMatrixModel(dataView: DataView): TadpoleSparkGridViewModel {
 
-            var viewModel: SpermChartViewModel = {
+            var viewModel: TadpoleSparkGridViewModel = {
                 colHeaders: [],
                 rowHeaders: [],
                 periodData: []
             };
 
             var formatter: ICustomValueFormatter = valueFormatter.formatRaw;
-            var matrixNavigator: IMatrixHierarchyNavigator = createMatrixHierarchyNavigator(dataView.matrix, formatter);
-            var m = dataView.matrix;
-            var rowNodes = matrixNavigator.getChildren(m.rows.root);
-            var colNodes = matrixNavigator.getChildren(m.columns.root);
-            var rowNodeDepth = matrixNavigator.getDepth(rowNodes);
+            if (dataView.matrix != null) {
+                var m: DataViewMatrix = dataView.matrix;
+                if (m != null) { 
+                    var matrixNavigator: IMatrixHierarchyNavigator = createMatrixHierarchyNavigator(m, formatter);
+                    var rowNodes: MatrixVisualNode[];
+                    var colNodes: MatrixVisualNode[];
+                    if ((m.rows != null)&&(m.rows.root != null)) {
+                        rowNodes = matrixNavigator.getChildren(m.rows.root);
+                    }
+                    if ((m.columns != null) && (m.columns.root != null)) {
+                        colNodes = matrixNavigator.getChildren(m.columns.root);
+                    }
+                    var rowNodeDepth: number = matrixNavigator.getDepth(rowNodes);
+                    if (rowNodeDepth > 1) {
+                        var rowNo: number;
+                        var arr: any[] = [];
+                        var startDepth: number = 0;
+                        var targetDepth: number = rowNodeDepth - 2;
+                        var noRowNodes: number = rowNodes.length;
+                        for (rowNo = 0; rowNo < noRowNodes; rowNo++) {
+                            arr = TadpoleSparkGrid.addChildDetailsToArray(rowNodes[rowNo], arr, startDepth, targetDepth);
+                        }
+                        var colHeadersArr: any[] = TadpoleSparkGrid.buildColHeadersArr(colNodes);
+                        var chartMeasuresArr: any[] = TadpoleSparkGrid.buildChartMeasuresArr(arr, colHeadersArr);
+                        var rowHeadersArr: any[] = TadpoleSparkGrid.buildRowHeadersArr(arr);
 
-            var rowNo: number;
-            var arr: any[] = [];
-            var startDepth: number = 0;
-            var targetDepth: number = rowNodeDepth - 2;
-            var noRowNodes: number = rowNodes.length;
-            for (rowNo = 0; rowNo < noRowNodes; rowNo++) {
-                arr = SpermChartVisual.addChildDetailsToArray(rowNodes[rowNo], arr, startDepth, targetDepth);
+                        viewModel.colHeaders = colHeadersArr;
+                        viewModel.rowHeaders = rowHeadersArr;
+                        viewModel.periodData = chartMeasuresArr;
+                    }
+                }
             }
-
-            var colHeadersArr = SpermChartVisual.buildColHeadersArr(colNodes);
-            var chartMeasuresArr = SpermChartVisual.buildChartMeasuresArr(arr, colHeadersArr);
-            var rowHeadersArr = SpermChartVisual.buildRowHeadersArr(arr);
-
-            viewModel.colHeaders = colHeadersArr;
-            viewModel.rowHeaders = rowHeadersArr;
-            viewModel.periodData = chartMeasuresArr;
 
             return viewModel;
         }
@@ -238,11 +251,11 @@ module powerbi.visuals {
         }
 
         public static buildRowHeadersArr(arr: any[]): any[] {
-            var rowHeadersArr = [];
-            var rowNo;
-            var len = arr.length;
+            var rowHeadersArr: any[] = [];
+            var rowNo: number;
+            var len: number = arr.length;
             var curNode: MatrixVisualNode;
-            var singleRowHeaderArr = [];
+            var singleRowHeaderArr: any[] = [];
             //var parentNode: MatrixVisualNode;
             for (rowNo = 0; rowNo < len; rowNo++) {
                 curNode = arr[rowNo];
@@ -259,17 +272,17 @@ module powerbi.visuals {
         public static buildChartMeasuresArr(arr: any[], colHeadersArr: any[]): any[] {
             var chartMeasuresArr = [];
             var measureNo: number;
-            var rowNo;
-            var len = arr.length;
-            var curNode;
+            var rowNo: number;
+            var len: number = arr.length;
+            var curNode: MatrixVisualNode;
             var curChildNode: MatrixVisualNode;
-            var chartData;
-            var chartPoint;
+            var chartData: any[];
+            var chartPoint: any[];
             for (rowNo = 0; rowNo < len; rowNo++) {
                 curNode = arr[rowNo];
                 if (curNode.children != null) {
                     var noChartItems = curNode.children.length;
-                    var chartItemIndex;
+                    var chartItemIndex: number;
                     for (chartItemIndex = 0; chartItemIndex < noChartItems; chartItemIndex++) {
                         // do something
                         curChildNode = curNode.children[chartItemIndex];
@@ -306,7 +319,7 @@ module powerbi.visuals {
                     /// check for no children here first
                     if ((curChildNode.children != null) &&
                         (curChildNode.children.length > 0)) {
-                        arr = SpermChartVisual.addChildDetailsToArray(curChildNode, arr, curDepth + 1, targetDepth);
+                        arr = TadpoleSparkGrid.addChildDetailsToArray(curChildNode, arr, curDepth + 1, targetDepth);
                     }
                 }
             } else {
@@ -317,7 +330,7 @@ module powerbi.visuals {
 
         /* One time setup*/
         public init(options: VisualInitOptions): void {
-            this.settings = SpermChartVisual.DefaultStyleProperties;
+            this.settings = TadpoleSparkGrid.DefaultStyleProperties;
 
             this.style = options.style;
             this.colors = this.style.colorPalette.dataColors;
@@ -327,13 +340,6 @@ module powerbi.visuals {
 
             var div = this.scrollingDiv = d3.select(options.element.get(0)).append('div');
             this.resizeScrollingDiv(width, height);
-
-            //div.style({
-            //    "width": width + 'px',
-            //    "height": height + 'px',
-            //    "overflow-y": "scroll",
-            //    "overflow-x": "hidden"
-            //});
 
             var svg = this.svg = div.append('svg');
             this.svg.attr('height', height).attr('width', width);
@@ -351,7 +357,7 @@ module powerbi.visuals {
 
             // convert the data views 
             var dataView = this.dataView = options.dataViews[0];
-            var viewModel: SpermChartViewModel = this.viewModel = SpermChartVisual.converter(dataView);
+            var viewModel: TadpoleSparkGridViewModel = this.viewModel = TadpoleSparkGrid.converter(dataView);
 
             var height = options.viewport.height;
             var width = options.viewport.width;
@@ -367,12 +373,6 @@ module powerbi.visuals {
 
             // set the scrolling div to the viewport size, the svg and canvas size will match the graphics content
             this.resizeScrollingDiv(width, height);
-            //this.scrollingDiv.style({
-            //    "width": width + 'px',
-            //    "height": height + 'px',
-            //    "overflow-y": "auto",
-            //    "overflow-x": "auto"
-            //});
         }
 
         /*About to remove your visual, do clean up here */
@@ -454,9 +454,15 @@ module powerbi.visuals {
         }
 
         /** 
-           Draw data rows with row label and sperm charts using our custom d3 graphics routines.
+           Draw data rows with row label and tadpole spark charts using our custom d3 graphics routines.
         **/
         private drawChartRows(canvasSvg, data, rowHeadings, colHeadings, width, height) {
+
+            // if we are missing any kind of data then abort
+            if (!((data != null) && (data.length > 0) && (rowHeadings != null) && (rowHeadings.length > 0) &&
+                ((colHeadings != null) && (colHeadings.length > 0)))) {
+                return;
+            }
 
             var chartHeight = this.settings.chart.height;
             var chartWidth = this.settings.chart.width;
@@ -488,8 +494,7 @@ module powerbi.visuals {
 
             var rowHeaderWidths = this.calcRowHeaderWidths(rowHeadings, textStyle);
             var rowHeaderWidth = this.calcTotalRowHeaderWidth(rowHeaderWidths, rowHeaderColumnSpacing);
-
-            var textHeight = this.estimateSvgTextHeight(textStyle, gridRowHeight); //     10;   // find for real
+            var textHeight = this.estimateSvgTextHeight(textStyle, gridRowHeight);
 
             var yOffset = 5 + textHeight;
             var xOffset = 15;
@@ -554,6 +559,10 @@ module powerbi.visuals {
                     }
                 }
 
+                // flag indicating whether down or up is flagged as red
+                // set in the controls
+                var upGood: boolean = !this.lessIsGood;
+
                 // draw each column of data
                 for (k = 0; k < noCols; k++) {
 
@@ -567,7 +576,7 @@ module powerbi.visuals {
                     // draw data point chart and background
                     dataPoints = data[k][j];
                     rect = this.drawRectangle(canvasSvg, chartX, chartY, chartWidth, chartHeight, chartBgColor);
-                    this.drawSpermChartNew(canvasSvg, dataPoints, chartWidth, chartHeight, true, chartX, chartY);
+                    this.drawTadpoleSparkChart(canvasSvg, dataPoints, chartWidth, chartHeight, upGood, chartX, chartY);
 
                     // create data object including tool tip info
                     dataObj = this.createToolTipDataObj(dataPoints, j, k);
@@ -593,6 +602,7 @@ module powerbi.visuals {
             var i;
             var item: TooltipDataItem;
             for (i = 0; i < len; i++) {
+                // TODO - need to get the formatted value here somehow
                 item = this.createToolTipDataItem(dataPoints[i][0], dataPoints[i][2]);
                 toolTipInfo.push(item);
             }
@@ -661,29 +671,29 @@ module powerbi.visuals {
             return height;
         }
 
-        private drawSpermChartNew(canvasSvg, yDataPoints, width, height, upGood, xOffset, yOffset) {
+        private drawTadpoleSparkChart(canvasSvg: D3.Selection, yDataPoints: any[], width: number, height: number, upGood: boolean, xOffset: number, yOffset: number) {
 
-            var yDataPointsValues = this.getValuesFromPoints(yDataPoints);
-            var yDataPointsPercentages = this.calcDataPointPercentages(yDataPointsValues);
-            var xAxisTickWidth = width / (yDataPoints.length - 1);
-            var yScaleFactor = height / 100;
-            var len = yDataPointsPercentages.length;
-            var goodColor = this.settings.chart.positiveColor;
-            var badColor = this.settings.chart.negativeColor;
-            var defaultThickness = (width) / 70;
-            var lastThickness = (width) / 18;
-            var goodOpacity = this.settings.chart.goodOpacity;
-            var badOpacity = this.settings.chart.badOpacity;
-            var lastOpacity = 1;
-            var thickness = 5;
-            var opacity;
-            var color;
-            var lastX = 0;
-            var lastY = yDataPointsPercentages[0] * yScaleFactor;
-            var nextX;
-            var nextY;
-            var i;
-            var good = Boolean(upGood);
+            var yDataPointsValues:any[] = this.getValuesFromPoints(yDataPoints);
+            var yDataPointsPercentages:any[] = this.calcDataPointPercentages(yDataPointsValues);
+            var xAxisTickWidth: number = width / (yDataPoints.length - 1);
+            var yScaleFactor: number = height / 100;
+            var len: number = yDataPointsPercentages.length;
+            var goodColor: string = this.settings.chart.positiveColor;
+            var badColor: string = this.settings.chart.negativeColor;
+            var defaultThickness: number = (width) / 70;
+            var lastThickness: number = (width) / 18;
+            var goodOpacity: number = this.settings.chart.goodOpacity;
+            var badOpacity: number = this.settings.chart.badOpacity;
+            var lastOpacity: number = 1;
+            var thickness: number;
+            var opacity: number;
+            var color: string;
+            var lastX: number = 0;
+            var lastY: number = yDataPointsPercentages[0] * yScaleFactor;
+            var nextX: number;
+            var nextY: number;
+            var i: number;
+            var good: boolean = upGood;
             for (i = 1; i < len; i++) {
                 nextX = lastX + xAxisTickWidth;
                 nextY = yDataPointsPercentages[i] * yScaleFactor;
@@ -759,15 +769,14 @@ module powerbi.visuals {
         /** 
             Draw a d3 rectangle starting from top left corner co-ordinate 
         **/
-        private drawRectangle(canvasSvg, x, y, width, height, color) {
-
-            var rectangle = canvasSvg.append("rect")
+        private drawRectangle(canvasSvg: D3.Selection, x: number, y: number,
+                              width: number, height: number, color: string): D3.Selection {
+            var rectangle: D3.Selection = canvasSvg.append("rect")
                 .attr("x", x)
                 .attr("y", y)
                 .attr("width", width)
                 .attr("height", height)
                 .attr("fill", color);
-
             return rectangle;
         }
 
@@ -807,31 +816,21 @@ module powerbi.visuals {
         /** 
             Draw a d3 text object starting from bottom left corner co-ordinate 
         **/
-        private drawText(canvasSvg, x, y, text, textStyle) {
-
-            //var labelFont = this.settings.labels.font;
-            //var labelColor = this.settings.labels.color;
-            //     labelColor = this.style.subTitleText.color.value;
+        private drawText(canvasSvg: D3.Selection, x: number, y: number, text: string, textStyle: ITextStyle): D3.Selection {
             var labelOpacity = 1;   // this.settings.labels.opacity;
-
-            // fontSize = fontSize + "px";
-
-            var labelColor = textStyle.color.value;
-            var labelFont = textStyle.fontFace;
-            var labelFontSize = textStyle.fontSize;
-
-            var txt = canvasSvg.append("text")
+            var labelColor:string = textStyle.color.value;
+            var labelFont:string = textStyle.fontFace;
+            var labelFontSize: string = textStyle.fontSize;
+            var txt: D3.Selection = canvasSvg.append("text")
                 .attr("x", x)
                 .attr("y", y)
                 .text(text);
-
             txt.style({
                 'font-family': labelFont,
                 'fill': labelColor,
                 'font-size': labelFontSize,
                 'fill-opacity': labelOpacity
             });
-
             return txt;
         }
 
@@ -839,8 +838,9 @@ module powerbi.visuals {
             Wrap a long text object by creating sub tspan elements 
             one for each line.
         **/
-        private drawTextWithWrap(canvasSvg, x, y, text, textStyle, id, wrapWidth) {
-            var txt = this.drawText(canvasSvg, x, y, text, textStyle);
+        private drawTextWithWrap(canvasSvg: D3.Selection, x: number, y: number, text: string,
+            textStyle: ITextStyle, id: string, wrapWidth: number): D3.Selection {
+            var txt: D3.Selection = this.drawText(canvasSvg, x, y, text, textStyle);
             txt.attr("dy", 0)
                 .attr("id", id)
                 .call(this.wrap, wrapWidth);
@@ -876,7 +876,7 @@ module powerbi.visuals {
                         }
                     }
                 }
-                );
+            );
         }
     }
 }
@@ -887,9 +887,9 @@ module powerbi.visuals {
 // Remember to finally move it to plugins.ts
 //
 //module powerbi.visuals.plugins {
-//    export var SpermChartVisual: IVisualPlugin = {
-//        name: 'SpermChartVisual',
-//        capabilities: SpermChartVisual.capabilities,
-//        create: () => new SpermChartVisual()
+//    export var TadpoleSparkGridVisual: IVisualPlugin = {
+//        name: 'TadpoleSparkGridVisual',
+//        capabilities: TadpoleSparkGridVisual.capabilities,
+//        create: () => new TadpoleSparkGridVisual()
 //    };
 //}

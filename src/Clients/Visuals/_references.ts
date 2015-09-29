@@ -177,6 +177,6 @@
 
 /// <reference path="visuals/donutChart.ts"/>
 
-/// <reference path="visuals/spermChartVisual.ts"/>
+/// <reference path="visuals/tadpoleSparkGrid.ts"/>
 
 /// <reference path="plugins.ts"/>
