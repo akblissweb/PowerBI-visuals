@@ -109,7 +109,7 @@ module powerbi.visuals {
                 instances.push({
                     selector: null,
                     properties: {
-                        lessIsGood: this.shouldSetLessIsGood(),
+                        lessIsGood: this.getLessIsGood(this.dataView)
                     },
                     objectName: options.objectName
                 });
@@ -117,11 +117,18 @@ module powerbi.visuals {
             return instances;
         }
 
-        private shouldSetLessIsGood(): boolean {
-            if (this.lessIsGood != null) {
-                this.lessIsGood = !this.lessIsGood;
+        // This gets the lessIsGood property from the DataView
+        private getLessIsGood(dataView: DataView): boolean {
+            var newLessIsGood: boolean = false;
+            if (dataView && dataView.metadata.objects) {
+                newLessIsGood = Boolean(dataView.metadata.objects['general']['lessIsGood']);
             } else {
                 this.lessIsGood = false;
+            }
+            if (newLessIsGood !== this.lessIsGood) {
+                // if it has changed then redraw the charts grid
+                this.lessIsGood = newLessIsGood;
+                this.update(this.options);
             }
             return this.lessIsGood;
         }
@@ -321,6 +328,8 @@ module powerbi.visuals {
             // convert the data views 
             var dataView = this.dataView = options.dataViews[0];
             var viewModel: TadpoleSparkGridViewModel = this.viewModel = TadpoleSparkGrid.converter(dataView);
+
+            this.getLessIsGood(dataView);
 
             var height = options.viewport.height;
             var width = options.viewport.width;
