@@ -63,6 +63,7 @@
 /// <reference path="capabilities/treemap.capabilities.ts"/>
 /// <reference path="capabilities/card.capabilities.ts"/>
 /// <reference path="capabilities/waterfallChart.capabilities.ts"/>
+/// <reference path="capabilities/tadpoleSparkGrid.capabilities.ts"/>
 /// <reference path="pluginsCapabilities.ts"/>
 
 /// <reference path="behaviours/columnChartBehaviors.ts"/>

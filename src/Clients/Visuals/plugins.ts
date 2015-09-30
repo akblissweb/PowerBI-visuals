@@ -317,7 +317,7 @@ module powerbi.visuals.plugins {
 
     export var tadpoleSparkGrid: IVisualPlugin = {
         name: 'tadpoleSparkGrid',
-        capabilities: TadpoleSparkGrid.capabilities,
+        capabilities: capabilities.tadpoleSparkGrid,
         create: () => new TadpoleSparkGrid()
     };
 }

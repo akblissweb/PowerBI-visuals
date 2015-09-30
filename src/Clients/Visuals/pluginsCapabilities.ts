@@ -98,4 +98,6 @@ module powerbi.visuals.capabilities {
 
     export var heatMap = powerbi.visuals.mapCapabilities;
 
+    export var tadpoleSparkGrid = powerbi.visuals.tadpoleSparkGridCapabilities;
+
     }

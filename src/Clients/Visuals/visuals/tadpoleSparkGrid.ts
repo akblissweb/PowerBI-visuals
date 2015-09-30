@@ -48,6 +48,7 @@ module powerbi.visuals {
         periodData: any[];
         rowHeaders: any[];
         colHeaders: any[];
+        colFormats: any[];
     };
 
     interface TadpoleSparkGridVisualStyle {
@@ -86,68 +87,6 @@ module powerbi.visuals {
                 colHeaderHeight: 40,
                 rowHeaderWidth: 180
             }
-        };
-
-		/**
-		  * Informs the System what it can do
-		  * Fields, Formatting options, data reduction & QnA hints
-		  */
-        public static capabilities: VisualCapabilities = {
-            dataRoles: [
-                {
-                    name: matrixRoleNames.rows,
-                    kind: VisualDataRoleKind.Grouping
-                },
-                {
-                    name: matrixRoleNames.values,
-                    kind: VisualDataRoleKind.Measure
-                }
-            ],
-            objects: {
-                general: {
-                    displayName: data.createDisplayNameGetter('Visual_General'),
-                    properties: {
-                        formatString: {
-                            type: { formatting: { formatString: true } },
-                        },
-                        lessIsGood: {
-                            type: { bool: true },
-                            displayName: 'Less is Good'
-                        }
-                    },
-                }
-            },
-            dataViewMappings: [{
-                conditions: [
-                    { 'Rows': { min: 1 }, 'Columns': { max: 0 }, 'Values': { max: 0 } },
-                    { 'Rows': { min: 0 }, 'Columns': { max: 0 }, 'Values': { max: 1 } },
-                    { 'Rows': { min: 1 }, 'Columns': { max: 0 }, 'Values': { min: 1 } }
-                ],
-                matrix: {
-                    rows: {
-                        for: { in: 'Rows' },
-                        /* Explicitly override the server data reduction to make it appropriate for matrix. */
-                        dataReductionAlgorithm: { window: { count: 100 } }
-                    },
-                    columns: {
-                        for: { in: 'Columns' },
-                        /* Explicitly override the server data reduction to make it appropriate for matrix. */
-                        dataReductionAlgorithm: { top: { count: 100 } }
-                    },
-                    values: {
-                        for: { in: 'Values' }
-                    }
-                }
-            }],
-            filterMappings: {
-                measureFilter: {
-                    targetRoles: [matrixRoleNames.rows]
-                }
-            },
-            sorting: {
-                custom: {},
-            },
-            suppressDefaultTitle: true,
         };
 
         private viewModel: TadpoleSparkGridViewModel;
@@ -198,13 +137,15 @@ module powerbi.visuals {
             var viewModel: TadpoleSparkGridViewModel = {
                 colHeaders: [],
                 rowHeaders: [],
-                periodData: []
+                periodData: [],
+                colFormats: []
             };
 
             var formatter: ICustomValueFormatter = valueFormatter.formatRaw;
             if (dataView.matrix != null) {
                 var m: DataViewMatrix = dataView.matrix;
                 if (m != null) { 
+
                     var matrixNavigator: IMatrixHierarchyNavigator = createMatrixHierarchyNavigator(m, formatter);
                     var rowNodes: MatrixVisualNode[];
                     var colNodes: MatrixVisualNode[];
@@ -225,17 +166,39 @@ module powerbi.visuals {
                             arr = TadpoleSparkGrid.addChildDetailsToArray(rowNodes[rowNo], arr, startDepth, targetDepth);
                         }
                         var colHeadersArr: any[] = TadpoleSparkGrid.buildColHeadersArr(colNodes);
-                        var chartMeasuresArr: any[] = TadpoleSparkGrid.buildChartMeasuresArr(arr, colHeadersArr);
-                        var rowHeadersArr: any[] = TadpoleSparkGrid.buildRowHeadersArr(arr);
-
                         viewModel.colHeaders = colHeadersArr;
-                        viewModel.rowHeaders = rowHeadersArr;
-                        viewModel.periodData = chartMeasuresArr;
+                        viewModel.rowHeaders = TadpoleSparkGrid.buildRowHeadersArr(arr);
+                        viewModel.periodData = TadpoleSparkGrid.buildChartMeasuresArr(arr, colHeadersArr);;
+                        viewModel.colFormats = TadpoleSparkGrid.buildColFormatsArr(dataView.matrix);
                     }
                 }
             }
 
             return viewModel;
+        }
+
+        /* get the format strings for all the columns
+           sure there's a much better way of getting this, but don't have time to find it 
+        */
+        public static buildColFormatsArr(matrix: DataViewMatrix): any[]{
+            var colFormatsArr: any[] = [];
+            var metaColArr: DataViewMetadataColumn[] = matrix.valueSources;
+            var i: number;
+            var len: number = metaColArr.length;
+            var curCol: DataViewMetadataColumn;
+            for (i = 0; i < len; i++) {
+                curCol = metaColArr[i];
+                colFormatsArr.push(TadpoleSparkGrid.getFormatStringForColumn(curCol));
+            }
+            return colFormatsArr;
+        }
+
+        /* get the format string for a column
+           sure there's a much better way of getting this, but don't have time to find it 
+        */
+        public static getFormatStringForColumn(metaCol: DataViewMetadataColumn): any {
+            var formatString: any = metaCol.objects['general']['formatString'];
+            return formatString;
         }
 
         public static buildColHeadersArr(arr: any[]): any[] {
@@ -601,9 +564,14 @@ module powerbi.visuals {
             var len = dataPoints.length;
             var i;
             var item: TooltipDataItem;
+            var formattedValue: string;
+            var formatString: string;
             for (i = 0; i < len; i++) {
-                // TODO - need to get the formatted value here somehow
-                item = this.createToolTipDataItem(dataPoints[i][0], dataPoints[i][2]);
+                // not the best way of formatting the value, can be improved
+                // but better than nothing for now
+                formatString = this.viewModel.colFormats[col];
+                formattedValue = valueFormatter.format(dataPoints[i][2], formatString);
+                item = this.createToolTipDataItem(dataPoints[i][0], formattedValue);
                 toolTipInfo.push(item);
             }
             var dataObj = [{ toolTipInfo: toolTipInfo }];
@@ -784,15 +752,15 @@ module powerbi.visuals {
             Convert a one dimensional array of values into percentages based on their
             minimum and maximum values.
         **/
-        private calcDataPointPercentages(dataArray) {
+        private calcDataPointPercentages(dataArray:any[]):number[] {
 
             // calc min, max and range
             var len = dataArray.length;
-            var min;
-            var max;
-            var range;
-            var curVal;
-            var i;
+            var min: number;
+            var max: number;
+            var range: number;
+            var curVal: number;
+            var i: number;
             for (i = 0; i < len; i++) {
                 curVal = dataArray[i];
                 if ((min == null) || (curVal < min)) { min = curVal; }
@@ -801,13 +769,25 @@ module powerbi.visuals {
             range = max - min;
 
             // calc percentages
-            var offsetFromMin;
-            var percentageVal;
-            var percentageArray = new Array();
+            var offsetFromMin: number;
+            var percentageVal: number;
+            var percentageArray: number[] = [];
             for (i = 0; i < len; i++) {
                 curVal = dataArray[i];
-                offsetFromMin = curVal - min;
-                percentageVal = offsetFromMin / (range / 100);
+                // test for non-existant data point
+                if (curVal != null) {
+                    offsetFromMin = curVal - min;
+                    // cater for zero range
+                    if (range > 0) {
+                        percentageVal = offsetFromMin / (range / 100);
+                    } else {
+                        percentageVal = 0;
+                    }
+                } else {
+                    // mark as -1 percentage to indicate missing data point
+                    // to chart drawing routine
+                    percentageVal = -1;
+                }
                 percentageArray.push(percentageVal);
             }
             return percentageArray;

@@ -22,6 +22,18 @@
 *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 *  THE SOFTWARE.
+*
+*  Angry Koala Tadpole Spark Grid Visualization - Sample data
+*  Visual Plugin for Microsoft Power BI Visualizations
+*  Author: Shaun Bliss, Angry Koala Pty Ltd. (blissweb@hotmail.com)   
+*  Creation Date: September 2015
+* 
+*  Provides a special version of the Matrix sample data to include 
+*  a set of month periods at the lowest level.
+*  Also includes a working Random() generator, missing from the
+*  current matrix sample data.
+*  
+*
 */
 
 /// <reference path="../_references.ts"/>
@@ -38,10 +50,19 @@ module powerbi.visuals.sampleDataViews {
         public visuals: string[] = ['tadpoleSparkGrid'
         ];
 
-        private sampleData: number[] = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
-            0, 20, 30, 40, 50, 60, 70, 80, 90, 100,
-            0, 20, 30, 40, 50, 60, 70, 80, 90, 100,
-            0, 20, 30, 40, 50, 60, 70, 80, 90, 100,
+        private sampleData: number[] = [
+            10, 20.38209309439, 30,
+            10, 50.3242343234, 20,
+            10, 80.22333, 90,
+            10, 0.0032, 20,
+            10, 40, 50.87887784,
+            10, 70, 80,
+            10, 100, 0,
+            20, 30, 40.7883726,
+            50.832988483, 60, 70,
+            80.8328839, 90, 100,
+            0, 20, 30,
+            40, 50, 60, 70, 80, 90, 100,
             0, 20, 30, 40, 50, 60, 70, 80, 90, 100,
             0, 20, 30, 40, 50, 60, 70, 80, 90, 100,
             0, 20, 30, 40, 50, 60, 70, 80, 90, 100,
