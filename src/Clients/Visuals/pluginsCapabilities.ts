@@ -100,4 +100,6 @@ module powerbi.visuals.capabilities {
 
     export var tadpoleSparkGrid = powerbi.visuals.tadpoleSparkGridCapabilities;
 
+    export var tadpoleSparkGridPlus = powerbi.visuals.tadpoleSparkGridPlusCapabilities;
+
     }

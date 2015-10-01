@@ -47,7 +47,7 @@ module powerbi.visuals.sampleDataViews {
         public name: string = "TadpoleSparkGridData";
         public displayName: string = "Tadpole spark grid data";
 
-        public visuals: string[] = ['tadpoleSparkGrid'
+        public visuals: string[] = ['tadpoleSparkGrid', 'tadpoleSparkGridPlus'
         ];
 
         private sampleData: number[] = [

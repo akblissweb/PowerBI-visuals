@@ -180,4 +180,6 @@
 
 /// <reference path="visuals/tadpoleSparkGrid.ts"/>
 
+/// <reference path="visuals/tadpoleSparkGridPlus.ts"/>
+
 /// <reference path="plugins.ts"/>
